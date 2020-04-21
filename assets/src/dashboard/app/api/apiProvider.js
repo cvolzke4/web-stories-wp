@@ -32,7 +32,7 @@ import {
   ORDER_BY_SORT,
 } from '../../constants';
 import useTemplateApi from './useTemplateApi';
-import wpAdapter from './wpAdapter';
+import dataAdapter from './wpAdapter';
 
 export const ApiContext = createContext({ state: {}, actions: {} });
 
@@ -61,7 +61,7 @@ export default function ApiProvider({ children }) {
   const { api, editStoryURL, pluginDir } = useConfig();
   const [stories, setStories] = useState([]);
 
-  const { templates, api: templateApi } = useTemplateApi(wpAdapter, {
+  const { templates, api: templateApi } = useTemplateApi(dataAdapter, {
     pluginDir,
   });
 
@@ -91,7 +91,7 @@ export default function ApiProvider({ children }) {
           query,
         });
 
-        const serverStoryResponse = await wpAdapter.get(path);
+        const serverStoryResponse = await dataAdapter.get(path);
         const reshapedStories = serverStoryResponse
           .map(reshapeStoryObject(editStoryURL))
           .filter(Boolean);
@@ -109,7 +109,7 @@ export default function ApiProvider({ children }) {
       return Promise.resolve([]);
     }
 
-    return wpAdapter.get(api.fonts).then((data) =>
+    return dataAdapter.get(api.fonts).then((data) =>
       data.map((font) => ({
         value: font.name,
         ...font,
