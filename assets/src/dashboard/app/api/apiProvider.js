@@ -23,11 +23,6 @@ import moment from 'moment';
 import queryString from 'query-string';
 
 /**
- * WordPress dependencies
- */
-import apiFetch from '@wordpress/api-fetch';
-
-/**
  * Internal dependencies
  */
 import { useConfig } from '../config';
@@ -35,9 +30,9 @@ import {
   STORY_STATUSES,
   STORY_SORT_OPTIONS,
   ORDER_BY_SORT,
-  APP_ROUTES,
 } from '../../constants';
-import getAllTemplates from '../../templates';
+import useTemplateApi from './useTemplateApi';
+import wpAdapter from './wpAdapter';
 
 export const ApiContext = createContext({ state: {}, actions: {} });
 
@@ -62,35 +57,13 @@ export function reshapeStoryObject(editStoryURL) {
   };
 }
 
-export function reshapeTemplateObject({
-  id,
-  title,
-  tags,
-  colors,
-  createdBy,
-  description,
-  pages,
-}) {
-  return {
-    id,
-    title,
-    createdBy,
-    description,
-    status: 'template',
-    modified: moment('2020-04-07'),
-    metadata: [...tags, ...colors].map((value) =>
-      typeof value === 'object' ? { ...value } : { label: value }
-    ),
-    pages,
-    centerTargetAction: `#${APP_ROUTES.TEMPLATE_DETAIL}?id=${id}`,
-    bottomTargetAction: () => {},
-  };
-}
-
 export default function ApiProvider({ children }) {
   const { api, editStoryURL, pluginDir } = useConfig();
   const [stories, setStories] = useState([]);
-  const [templates, setTemplates] = useState([]);
+
+  const { templates, api: templateApi } = useTemplateApi(wpAdapter, {
+    pluginDir,
+  });
 
   const fetchStories = useCallback(
     async ({
@@ -118,9 +91,7 @@ export default function ApiProvider({ children }) {
           query,
         });
 
-        const serverStoryResponse = await apiFetch({
-          path,
-        });
+        const serverStoryResponse = await wpAdapter.get(path);
         const reshapedStories = serverStoryResponse
           .map(reshapeStoryObject(editStoryURL))
           .filter(Boolean);
@@ -133,31 +104,12 @@ export default function ApiProvider({ children }) {
     [api.stories, editStoryURL]
   );
 
-  const fetchTemplates = useCallback(() => {
-    const reshapedTemplates = getAllTemplates({ pluginDir }).map(
-      reshapeTemplateObject
-    );
-    setTemplates(reshapedTemplates);
-
-    return Promise.resolve(reshapedTemplates);
-  }, [pluginDir]);
-
-  const fetchTemplate = useCallback(
-    async (id) => {
-      const fetchedTemplates = await fetchTemplates();
-      return Promise.resolve(
-        fetchedTemplates.find((template) => template.id === id)
-      );
-    },
-    [fetchTemplates]
-  );
-
   const getAllFonts = useCallback(() => {
     if (!api.fonts) {
       return Promise.resolve([]);
     }
 
-    return apiFetch({ path: api.fonts }).then((data) =>
+    return wpAdapter.get(api.fonts).then((data) =>
       data.map((font) => ({
         value: font.name,
         ...font,
@@ -168,16 +120,9 @@ export default function ApiProvider({ children }) {
   const value = useMemo(
     () => ({
       state: { stories, templates },
-      actions: { fetchStories, fetchTemplates, fetchTemplate, getAllFonts },
+      actions: { fetchStories, templateApi, getAllFonts },
     }),
-    [
-      stories,
-      templates,
-      fetchStories,
-      fetchTemplates,
-      fetchTemplate,
-      getAllFonts,
-    ]
+    [stories, fetchStories, templates, templateApi, getAllFonts]
   );
 
   return <ApiContext.Provider value={value}>{children}</ApiContext.Provider>;
