@@ -25,11 +25,11 @@ import { useKeyEffect } from '../../keyboard';
 const DELTA_CHANGE = 20; // change in pixels when pressing arrow keys
 
 function useKeyboardHandlers(handle, handleHeightChange) {
-  useKeyEffect(handle, 'up', () => handleHeightChange(DELTA_CHANGE), [
+  useKeyEffect(handle, 'up', () => {console.warn('====UP');handleHeightChange(DELTA_CHANGE);}, [
     handleHeightChange,
   ]);
 
-  useKeyEffect(handle, 'down', () => handleHeightChange(-DELTA_CHANGE), [
+  useKeyEffect(handle, 'down', () => {console.warn('====DOWN');handleHeightChange(-DELTA_CHANGE);}, [
     handleHeightChange,
   ]);
 }

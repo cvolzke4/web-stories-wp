@@ -82,12 +82,12 @@ function DragHandle({
 }
 
 DragHandle.propTypes = {
-  handleHeightChange: PropTypes.func.isRequired,
-  handleExpandToHeightChange: PropTypes.func.isRequired,
-  handleDoubleClick: PropTypes.func.isRequired,
-  height: PropTypes.number.isRequired,
-  minHeight: PropTypes.number.isRequired,
-  maxHeight: PropTypes.number.isRequired,
+  handleHeightChange: PropTypes.func,
+  handleExpandToHeightChange: PropTypes.func,
+  handleDoubleClick: PropTypes.func,
+  height: PropTypes.number,
+  minHeight: PropTypes.number,
+  maxHeight: PropTypes.number,
 };
 
 export default DragHandle;
